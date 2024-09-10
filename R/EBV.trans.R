@@ -187,16 +187,16 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
   beta <- fit$BLUP_beta
 
   K <- lapply(1:length(Randlist), function(i) {
-    return(fit$tau[i] * Randlist[[i]][ref, ref])
+    return(fit$tau[i] * Randlist[[i]][, ])
   })
-  V <- matrix(0, length(ref), length(ref))
+  V <- matrix(0, n, n)
   for (i in 1:length(K)) {
     V <- V + K[[i]]
   }
-  V <- V + diag(ve, length(ref))
+  V <- V + diag(ve, n)
   P <- fit$P
-  V_VPV <- V - tcrossprod(crossprod(V, P), V)
-  rm(K, V, P)
+  V_VPV <- V[ref, ref] - tcrossprod(crossprod(V[ref, ref], P), V[ref, ref])
+  rm(K, P)
   X <- as.matrix(CV[ref, ])
   XXiX <- try(tcrossprod(solve(crossprod(X)), X), silent = TRUE)
   if (inherits(XXiX, "try-error")) {
@@ -246,47 +246,60 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
       pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
       on.exit(close(pb))
     }
-    P <- fit$P
+    X <- CV
+    Vi <- try(solve(V + diag(1, n) * (1e-10)), silent=T)
+	  if(inherits(Vi, "try-error")){
+		  warning("Individual relationship matrix V is singular, using general inverse insteaded")
+		  Vi <- MASS::ginv(V)
+	  }
+	  XVX <- as.matrix(crossprod(X, crossprod(Vi, X)))
+	  XVXi <- try(solve(XVX + diag(1, ncol(XVX)) * (1e-10)), silent=T)
+	  if(inherits(XVXi, "try-error")){
+		  warning("Cov-variance matrix of CV is singular, using general inverse insteaded")
+		  XVXi <- MASS::ginv(XVX)
+	  }
+    VX <- crossprod(Vi, X)
+	  P <- Vi - tcrossprod(tcrossprod(VX, XVXi), VX)
+    rm(VX, XVXi, XVX, Vi, V, X)
     DF <- n - ncol(CV) - length(Randlist)
-    if (ng == 1 || ncpus == 1) {
-      gwas <- lapply(1:ng, function(i) {
-        genoi <- geno[[i]]
-        wi <- weight[row.names(genoi)]
-        mafi <- rowMeans(genoi[, ]) / 2
-        scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
-        if (is.null(wi)) {
-          DZ <- (genoi[, ref] - mafi)
-        }else {
-          wi <- length(wi) * wi / sum(wi)
-          DZ <- (genoi[, ref] - mafi) * sqrt(wi)
-        }
-        Ki <- Klist[[i]]
-        K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
-        if (inherits(K_inv, "try-error")) {
-          warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-          K_inv <- MASS::ginv(Ki[, ])[, ref]
-        }
-        ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
-        Effect <- scalei * ef
-        pch <-try(chol(P), silent = TRUE)
-        if (inherits(pch, "try-error")) {
-          warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
-          eig <- eigen(P, symmetric = TRUE)
-          vec <- eig$vectors
-          val <- eig$values
-          DZS <- tcrossprod(DZ, t(vec))
-          diagv <- apply(DZS, 1, function(i) {
-            return(sum(val * i^2))
-          })
-          SE <- vg[i] * scalei * sqrt(diagv)
-          rm(ef, eig, vec, val, DZS, pch, diagv)
-        }else {
-          ZP <- tcrossprod(DZ, pch)
-          n <- dim(pch)[2]
-          diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
-          SE <- vg[i] * scalei * sqrt(diagv)
-          rm(ef, ZP, pch, diagv)
-        }
+    transfor <- function(i) {
+      genoi <- geno[[i]]
+      wi <- weight[row.names(genoi)]
+      mafi <- rowMeans(genoi[, ]) / 2
+      scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
+      if (is.null(wi)) {
+        DZ <- (genoi[, ] - mafi)
+      }else {
+        wi <- length(wi) * wi / sum(wi)
+        DZ <- (genoi[, ] - mafi) * sqrt(wi)
+      }
+      Ki <- Klist[[i]]
+      K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)
+      if (inherits(K_inv, "try-error")) {
+        warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
+        K_inv <- MASS::ginv(Ki[, ])
+      }
+      ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
+      Effect <- scalei * ef
+      pch <-try(chol(P), silent = TRUE)
+      if (inherits(pch, "try-error")) {
+        warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
+        eig <- eigen(P, symmetric = TRUE)
+        vec <- eig$vectors
+        val <- eig$values
+        DZS <- tcrossprod(DZ, t(vec))
+        diagv <- apply(DZS, 1, function(i) {
+          return(sum(val * i^2))
+        })
+        SE <- vg[i] * scalei * sqrt(diagv)
+        rm(ef, eig, vec, val, DZS, pch, diagv)
+      }else {
+        ZP <- tcrossprod(DZ, pch)
+        n <- dim(pch)[2]
+        diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
+        SE <- vg[i] * scalei * sqrt(diagv)
+        rm(ef, ZP, pch, diagv)
+      }
         Pvalue <- 2 * stats::pt(abs(Effect / SE), DF, lower.tail = FALSE)
         if (sum(is.na(Pvalue)) != 0) {
           warning("Non-positive variance appeared at ", which(is.na(Pvalue)), " markers in geno group ", i)
@@ -294,107 +307,20 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
         }
         rm(genoi, wi, mafi, Ki, scalei, DZ, K_inv)
         return(cbind(Effect, SE, Pvalue))
-      })
+    }
+    if (ng == 1 || ncpus == 1) {
+      gwas <- lapply(1:ng, transfor)
     }else {
       if (Sys.info()[["sysname"]] == "Linux") {
-        gwas <- parallel::mclapply(1:ng, function(i) {
-          genoi <- geno[[i]]
-          wi <- weight[row.names(genoi)]
-          mafi <- rowMeans(genoi[, ]) / 2
-          scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
-          if (is.null(wi)) {
-            DZ <- (genoi[, ref] - mafi)
-          }else {
-            wi <- length(wi) * wi / sum(wi)
-            DZ <- (genoi[, ref] - mafi) * sqrt(wi)
-          }
-          Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
-          if (inherits(K_inv, "try-error")) {
-            warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])[, ref]
-          }
-          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
-          Effect <- scalei * ef
-          pch <-try(chol(P), silent = TRUE)
-          if (inherits(pch, "try-error")) {
-            warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
-            eig <- eigen(P, symmetric = TRUE)
-            vec <- eig$vectors
-            val <- eig$values
-            DZS <- tcrossprod(DZ, t(vec))
-            diagv <- apply(DZS, 1, function(i) {
-              return(sum(val * i^2))
-            })
-            SE <- vg[i] * scalei * sqrt(diagv)
-            rm(ef, eig, vec, val, DZS, pch, diagv)
-          }else {
-            ZP <- tcrossprod(DZ, pch)
-            n <- dim(pch)[2]
-            diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
-            SE <- vg[i] * scalei * sqrt(diagv)
-            rm(ef, ZP, pch, diagv)
-          }
-          Pvalue <- 2 * stats::pt(abs(Effect / SE), DF, lower.tail = FALSE)
-          if (sum(is.na(Pvalue)) != 0) {
-            warning("Non-positive variance appeared at ", which(is.na(Pvalue)), " markers in geno group ", i)
-            Pvalue[which(is.na(Pvalue))] <- 1
-          }
-          rm(genoi, wi, mafi, Ki, scalei, DZ, K_inv)
-          return(cbind(Effect, SE, Pvalue))
-        }, mc.cores = ncpus, mc.preschedule = FALSE)
+        gwas <- parallel::mclapply(1:ng, transfor, 
+                                   mc.cores = ncpus, mc.preschedule = FALSE)
       }else {
         suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
         suppressMessages(snowfall::sfLibrary(MASS))
         suppressMessages(snowfall::sfLibrary(stats))
         suppressMessages(snowfall::sfExport("geno", "weight", "Klist",
                                             "ebv.g", "vg", "P", "DF"))
-        gwas <- snowfall::sfLapply(1:ng, function(i) {
-          genoi <- geno[[i]]
-          wi <- weight[row.names(genoi)]
-          mafi <- rowMeans(genoi[, ]) / 2
-          scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
-          if (is.null(wi)) {
-            DZ <- (genoi[, ref] - mafi)
-          }else {
-            wi <- length(wi) * wi / sum(wi)
-            DZ <- (genoi[, ref] - mafi) * sqrt(wi)
-          }
-          Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
-          if (inherits(K_inv, "try-error")) {
-            warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])[, ref]
-          }
-          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
-          Effect <- scalei * ef
-          pch <-try(chol(P), silent = TRUE)
-          if (inherits(pch, "try-error")) {
-            warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
-            eig <- eigen(P, symmetric = TRUE)
-            vec <- eig$vectors
-            val <- eig$values
-            DZS <- tcrossprod(DZ, t(vec))
-            diagv <- apply(DZS, 1, function(i) {
-              return(sum(val * i^2))
-            })
-            SE <- vg[i] * scalei * sqrt(diagv)
-            rm(ef, eig, vec, val, DZS, pch, diagv)
-          }else {
-            ZP <- tcrossprod(DZ, pch)
-            n <- dim(pch)[2]
-            diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
-            SE <- vg[i] * scalei * sqrt(diagv)
-            rm(ef, ZP, pch, diagv)
-          }
-          Pvalue <- 2 * stats::pt(abs(Effect / SE), DF, lower.tail = FALSE)
-          if (sum(is.na(Pvalue)) != 0) {
-            warning("Non-positive variance appeared at ", which(is.na(Pvalue)), " markers in geno group ", i)
-            Pvalue[which(is.na(Pvalue))] <- 1
-          }
-          rm(genoi, wi, mafi, Ki, scalei, DZ, K_inv)
-          return(cbind(Effect, SE, Pvalue))
-        })
+        gwas <- snowfall::sfLapply(1:ng, transfor)
         suppressMessages(snowfall::sfStop())
       }
     }
