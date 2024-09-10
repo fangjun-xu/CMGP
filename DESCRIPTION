@@ -1,0 +1,29 @@
+Package: CMGP
+Title: A Comprehensive Mixed-linear-model-based Tool for Genomic Prediction
+Version: 1.0.0
+Authors@R: 
+    c(person(given = "Fangjun", 
+             family = "Xu", 
+             role = c("aut"),
+             email = "fjxu@webmail.hzau.edu.cn"),
+      person(given = "Mengjin", 
+             family = "Zhu", 
+             role = c("aut", "cre"),
+             email = "zhumengjin@mail.hzau.edu.cn"))
+Description: A Comprehensive Mixed-linear-model-based Tool contained GBLUP, GFBLUP,
+    Kinship-weighted GBLUP, Marker-assisted GBLUP, Adaptive Multi-BLUP and MAPS methods.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports:
+    bigmemory,
+    gaston,
+    nnet,
+    parallel,
+    pbapply,
+    Rfast,
+    snowfall,
+    stats
+Depends: 
+    base
