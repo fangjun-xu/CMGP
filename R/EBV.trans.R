@@ -255,16 +255,16 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
         mafi <- rowMeans(genoi[, ]) / 2
         scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
         if (is.null(wi)) {
-          DZ <- (genoi[, ] - mafi)
+          DZ <- (genoi[, ref] - mafi)
         }else {
           wi <- length(wi) * wi / sum(wi)
-          DZ <- (genoi[, ] - mafi) * sqrt(wi)
+          DZ <- (genoi[, ref] - mafi) * sqrt(wi)
         }
         Ki <- Klist[[i]]
-        K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)
+        K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
         if (inherits(K_inv, "try-error")) {
           warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-          K_inv <- MASS::ginv(Ki[, ])
+          K_inv <- MASS::ginv(Ki[, ])[ref, ref]
         }
         ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
         Effect <- scalei * ef
@@ -303,16 +303,16 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
           mafi <- rowMeans(genoi[, ]) / 2
           scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
           if (is.null(wi)) {
-            DZ <- (genoi[, ] - mafi)
+            DZ <- (genoi[, ref] - mafi)
           }else {
             wi <- length(wi) * wi / sum(wi)
-            DZ <- (genoi[, ] - mafi) * sqrt(wi)
+            DZ <- (genoi[, ref] - mafi) * sqrt(wi)
           }
           Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)
+          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
           if (inherits(K_inv, "try-error")) {
             warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])
+            K_inv <- MASS::ginv(Ki[, ])[ref, ref]
           }
           ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
           Effect <- scalei * ef
@@ -355,16 +355,16 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
           mafi <- rowMeans(genoi[, ]) / 2
           scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
           if (is.null(wi)) {
-            DZ <- (genoi[, ] - mafi)
+            DZ <- (genoi[, ref] - mafi)
           }else {
             wi <- length(wi) * wi / sum(wi)
-            DZ <- (genoi[, ] - mafi) * sqrt(wi)
+            DZ <- (genoi[, ref] - mafi) * sqrt(wi)
           }
           Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)
+          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
           if (inherits(K_inv, "try-error")) {
             warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])
+            K_inv <- MASS::ginv(Ki[, ])[ref, ref]
           }
           ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
           Effect <- scalei * ef
