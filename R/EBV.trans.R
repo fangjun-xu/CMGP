@@ -261,12 +261,12 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
           DZ <- (genoi[, ref] - mafi) * sqrt(wi)
         }
         Ki <- Klist[[i]]
-        K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
+        K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
         if (inherits(K_inv, "try-error")) {
           warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-          K_inv <- MASS::ginv(Ki[, ])[ref, ref]
+          K_inv <- MASS::ginv(Ki[, ])[, ref]
         }
-        ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[ref, i])
+        ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
         Effect <- scalei * ef
         pch <-try(chol(P), silent = TRUE)
         if (inherits(pch, "try-error")) {
@@ -309,12 +309,12 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
             DZ <- (genoi[, ref] - mafi) * sqrt(wi)
           }
           Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
+          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
           if (inherits(K_inv, "try-error")) {
             warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])[ref, ref]
+            K_inv <- MASS::ginv(Ki[, ])[, ref]
           }
-          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[ref, i])
+          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
           Effect <- scalei * ef
           pch <-try(chol(P), silent = TRUE)
           if (inherits(pch, "try-error")) {
@@ -361,12 +361,12 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
             DZ <- (genoi[, ref] - mafi) * sqrt(wi)
           }
           Ki <- Klist[[i]]
-          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[ref, ref]
+          K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)[, ref]
           if (inherits(K_inv, "try-error")) {
             warning("The GRM of geno component ", i, " is singular!\nUsing general inverse insteaded")
-            K_inv <- MASS::ginv(Ki[, ])[ref, ref]
+            K_inv <- MASS::ginv(Ki[, ])[, ref]
           }
-          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[ref, i])
+          ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
           Effect <- scalei * ef
           pch <-try(chol(P), silent = TRUE)
           if (inherits(pch, "try-error")) {
