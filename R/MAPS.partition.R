@@ -60,6 +60,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   inter.s <- c(min(interval_S) : max(interval_S))
   if (verbose) {
     if (length(inter.s) == 1) {
+      t1 <- as.numeric(Sys.time())
       cat("Stratified genome into", inter.s, "groups\n")
     }
     else {
@@ -120,7 +121,9 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   if (verbose) {
     t2 <- as.numeric(Sys.time())
     cat(paste("  | 100% elapsed=", time.trans(round(t2 - t1)),sep = ""), "\n")
-    cat("Optimal num. of stra.:", ops ,"\n")
+    if (length(inter.s) != 1) {
+      cat("Optimal num. of stra.:", ops ,"\n")
+    }
     cat("SNPs Num. in Stras. / Enrichment h2:\n")
     nums <- as.vector(table(partition))
     for (i in 1:length(nums)){
