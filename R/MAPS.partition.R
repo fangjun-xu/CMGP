@@ -71,6 +71,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
 
   M <- dim(geno)[1]
   st.loop <- function(i) {
+    set.seed(i)
     part <- stats::kmeans(pve, centers = i, nstart = 50)$cluster
     genolist <- lapply(1:i, function(j) {
       snpij <- as.numeric(which(part == j))
