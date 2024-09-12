@@ -27,7 +27,11 @@ Kinship.Van <- function(geno = NULL, weight = NULL, ncut = 1, ncpus = 1) {
 
   n <- dim(geno)[2] #NUM OF INDIVIDUALS
   m <- dim(geno)[1] #NUM OF MARKERS
-  maf <- rowMeans(geno[, ]) / 2
+  if (m == 1) {
+    maf <- mean(geno[, ]) / 2
+  }else {
+    maf <- rowMeans(geno[, ]) / 2
+  }
   Z <- bigmemory::big.matrix(m, n, type = "double",
                              init = NULL, shared = FALSE)
   if (!is.null(weight)) {
@@ -39,7 +43,11 @@ Kinship.Van <- function(geno = NULL, weight = NULL, ncut = 1, ncpus = 1) {
   K <- matrix(NA, n, n)
   if (ncut == 1 || ncpus == 1) {
     ##recommend##
-    K[, ] <- crossprod(Z[, ]) / (2 * sum(maf * (1 - maf)))
+    if (m == 1) {
+      K[, ] <- tcrossprod(Z[, ]) / (2 * sum(maf * (1 - maf)))
+    }else {
+      K[, ] <- crossprod(Z[, ]) / (2 * sum(maf * (1 - maf)))
+    }
     rm(Z)
   }else {
     cut.lab <- cut(1:n, breaks = ncut, labels = FALSE)
