@@ -63,10 +63,12 @@ CMGP.KW <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
     sp <- as.data.frame(sp)
     if (W.method == "OLS" || W.method == "ebvTrans") {
       weight <- as.vector(sp$Pvalue)
+      weight <- -log10(weight)
     }else {
       weight <- as.vector(sp$PVE)
     }
   }
+  weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
   names(weight) <- rownames(geno)
 
   kw.fit <- EBV.trans(y = y, CV = CV, geno = list(geno), random = random,
