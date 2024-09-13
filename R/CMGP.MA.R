@@ -72,8 +72,8 @@ CMGP.MA <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
     }
     value <- sp$Pvalue[index]
   }else {
-    index <- which(sp$PVE <= stats::quantile(sp$PVE,
-                                             part.threshold,
+    index <- which(sp$PVE >= stats::quantile(sp$PVE,
+                                             1 - part.threshold,
                                              na.rm = TRUE))
     value <- sp$PVE[index]
   }
@@ -94,8 +94,8 @@ CMGP.MA <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
                                                               na.rm = TRUE))
         index <- index[index300]
       }else {
-        index300 <- which(sp$PVE[index] <= stats::quantile(sp$PVE[index],
-                                                           300 / length(index),
+        index300 <- which(sp$PVE[index] >= stats::quantile(sp$PVE[index],
+                                                           (length(index) - 300) / length(index),
                                                            na.rm = TRUE))
         index <- index[index300]
       }
