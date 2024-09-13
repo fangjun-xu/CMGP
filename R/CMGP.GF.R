@@ -72,8 +72,8 @@ CMGP.GF <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
     }
     value <- sp$Pvalue[index]
   }else {
-    index <- which(sp$PVE <= stats::quantile(sp$PVE,
-                                             part.threshold,
+    index <- which(sp$PVE >= stats::quantile(sp$PVE,
+                                             1 - part.threshold,
                                              na.rm = TRUE))
     value <- sp$PVE[index]
   }
