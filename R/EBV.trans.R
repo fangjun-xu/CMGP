@@ -307,7 +307,7 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
       }
         Pvalue <- 2 * stats::pt(abs(Effect / SE), DF, lower.tail = FALSE)
         if (sum(is.na(Pvalue)) != 0) {
-          warning("Non-positive variance appeared at ", which(is.na(Pvalue)), " markers in geno group ", i)
+          warning("Non-positive variance appeared at ", paste(which(is.na(Pvalue)), collapse = ","), " markers in geno group ", i)
           Pvalue[which(is.na(Pvalue))] <- 1
         }
         rm(genoi, wi, mafi, Ki, scalei, DZ, K_inv)
