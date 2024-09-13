@@ -265,7 +265,11 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
     transfor <- function(i) {
       genoi <- geno[[i]]
       wi <- weight[row.names(genoi)]
-      mafi <- rowMeans(genoi[, ]) / 2
+      if (nrow(genoi) == 1) {
+	mafi <- mean(genoi[, ]) / 2
+      }else {
+        mafi <- rowMeans(genoi[, ]) / 2
+      }
       scalei <- 1 / (2 * sum(mafi * (1 - mafi)))
       if (is.null(wi)) {
         DZ <- (genoi[, ] - mafi)
@@ -273,6 +277,7 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
         wi <- length(wi) * wi / sum(wi)
         DZ <- (genoi[, ] - mafi) * sqrt(wi)
       }
+      DZ <- matrix(DZ, nrow = nrow(genoi))
       Ki <- Klist[[i]]
       K_inv <- try(solve(Ki[, ] + diag(1, ncol(Ki)) * (1e-10)), silent = TRUE)
       if (inherits(K_inv, "try-error")) {
