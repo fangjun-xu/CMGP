@@ -87,6 +87,7 @@ h2.m <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     }
     pve <- b2_adj * ((2 * maf * (1 - maf)) ^ (1 + alpha))
     pve <- pve / vy
+    pve[which(is.na(pve))] <- min(pve, na.rm = TRUE)
   }else {
     mina <- min(alpha, na.rm = TRUE)
     maxa <- max(alpha, na.rm = TRUE)
@@ -96,6 +97,7 @@ h2.m <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     }
     op_a <- function(al) {
       wei <- (b2_adj * ((2 * maf * (1 - maf)) ^ (1 + al))) / vy
+      wei[which(is.na(wei))] <- min(wei, na.rm = TRUE)
       mix <- EBV.trans(y = y, CV = CV, geno = list(geno), weight = wei,
                        random = random, EMsteps = EMsteps, EM_alpha = EM_alpha,
                        EMsteps_fail = EMsteps_fail, max_iter = max_iter,
@@ -116,6 +118,7 @@ h2.m <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     }
     pve <- b2_adj * ((2 * maf * (1 - maf)) ^ (1 + opa))
     pve <- pve / vy
+    pve[which(is.na(pve))] <- min(pve, na.rm = TRUE)
   }
   revl <- cbind(map, glm, maf, ldscore, pve)
   colnames(revl) <- c(colnames(map), colnames(glm), "MAF", "LD_score", "PVE")
