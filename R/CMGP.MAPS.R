@@ -64,6 +64,7 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     return(gi)
   })
   weight <- clusm$PVE
+  weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
   names(weight) <- rownames(geno)
   rm(clusm, part)
   maps.fit <- EBV.trans(y = y, CV = CV, geno = maps.geno, random = random,
