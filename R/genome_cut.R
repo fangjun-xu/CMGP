@@ -24,7 +24,7 @@ genome_cut <- function(geno = NULL, map = NULL, bin = 1e6,
   map[, 1] <- rownames(geno)
   rownames(map) <- rownames(geno)
   chr <- unique(map[, 2])
-  if (length(chr) > ncpus) {
+  if (length(chr) > ncpus  && ncpus > 1) {
     pbseq <- seq(length(chr), 1, -ceiling(length(chr) / ncpus))[1:ncpus]
   }else {
     pbseq <- 1:length(chr)
