@@ -32,7 +32,7 @@ genome_cut <- function(geno = NULL, map = NULL, bin = 1e6,
   if (verbose) {
     cat("Dividing the genome regions...\n")
     cat("Region size:", bin / 1000, "Kb\n")
-    maxpb <- min(ncpus, length(chr)) + 1
+    maxpb <- length(pbseq) + 1
     pb <- pbapply::timerProgressBar(max = maxpb ,
                                     width = 30, char = "-", style = 3)
     on.exit(close(pb))
