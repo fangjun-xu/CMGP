@@ -96,8 +96,8 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
       }, mc.cores = ncpus, mc.preschedule = FALSE)
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
-      suppressMessages(snowfall::sfExport("geno", "weight",
-                                          "verbose", "Kinship.Van"))
+      suppressMessages(snowfall::sfLibrary(CMGP))
+      suppressMessages(snowfall::sfExport("geno", "weight", "verbose"))
       Klist <- snowfall::sfLapply(1:ng, function(i) {
         gi <- geno[[i]]
         wi <- weight[row.names(gi)]
