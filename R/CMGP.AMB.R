@@ -76,7 +76,7 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
   if (verbose) {
     cat("Likelihood ratio test for genome regions...\n")
     cat("Significant level:", LRT.threshold / length(genolist), "\n")
-    maxpb <- min(ncpus, length(genolist)) + 1
+    maxpb <- length(pbseq) + 1
     pb <- pbapply::timerProgressBar(max = maxpb,
                                     width = 30, char = "-", style = 3)
     on.exit(close(pb))
