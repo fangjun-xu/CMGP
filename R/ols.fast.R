@@ -29,14 +29,14 @@ ols.fast <- function(y = NULL, CV = NULL, geno = NULL,
     stop("Number of individuals don't match between y and geno!", "\n",
          "In addition: geno should be (marker size) * (individual size)!")
   }
-  if (dim(geno)[1] > ncpus) {
+  if (dim(geno)[1] > ncpus && ncpus > 1) {
     pbseq <- seq(dim(geno)[1], 1, -ceiling(dim(geno)[1] / ncpus))[1:ncpus]
   }else {
     pbseq <- 1:dim(geno)[1]
   }
   if (verbose) {
     cat("Calculating marginal effects...\n")
-    maxpb <- min(ncpus, dim(geno)[1]) + 1
+    maxpb <- length(pbseq) + 1
     pb <- pbapply::timerProgressBar(max = maxpb, width = 30,
                                     char = "-", style = 3)
     on.exit(close(pb))
