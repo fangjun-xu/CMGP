@@ -24,7 +24,7 @@ LDSC <- function(geno = NULL, map = NULL, bin = 1e6,
                                     width = 30, char = "-", style = 3)
     on.exit(close(pb))
   }
-  if (dim(geno)[1] > ncpus) {
+  if (dim(geno)[1] > ncpus && ncpus > 1) {
     pbseq <- seq(dim(geno)[1], 1, -ceiling(dim(geno)[1] / ncpus))[1:ncpus]
   }else {
     pbseq <- 1:dim(geno)[1]
