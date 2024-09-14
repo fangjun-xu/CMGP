@@ -67,7 +67,7 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
     pbapply::setTimerProgressBar(pb, 1)
     cat("\n")
   }
-  if (length(genolist) > ncpus) {
+  if (length(genolist) > ncpus && ncpus > 1) {
     pbseq <- seq(length(genolist), 1,
                  -ceiling(length(genolist) / ncpus))[1:ncpus]
   }else {
