@@ -104,12 +104,13 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
       geno <- geno[, ]
-      suppressMessages(snowfall::sfExport("pve", "geno", "EBV.trans", "y",
+      suppressMessages(snowfall::sfExport("pve", "geno", "y",
                                           "CV", "random", "M",
                                           "EMsteps", "EM_alpha",
                                           "EMsteps_fail", "max_iter",
                                           "eps", "verbose"))
       suppressMessages(snowfall::sfLibrary(stats))
+      suppressMessages(snowfall::sfLibrary(CMGP))
       loop <- snowfall::sfLapply(inter.s, st.loop)
       suppressMessages(snowfall::sfStop())
     }
