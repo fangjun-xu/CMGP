@@ -16,18 +16,18 @@
 #' #}
 LDSC <- function(geno = NULL, map = NULL, bin = 1e6,
                  ncpus = 1, verbose = TRUE) {
-  if (verbose) {
-    cat("Calculating LD score...\n")
-    cat("Bin size for correlation:", bin / 1000, "Kb\n")
-    maxpb <- min(ncpus, dim(geno)[1]) + 1
-    pb <- pbapply::timerProgressBar(max = maxpb,
-                                    width = 30, char = "-", style = 3)
-    on.exit(close(pb))
-  }
   if (dim(geno)[1] > ncpus && ncpus > 1) {
     pbseq <- seq(dim(geno)[1], 1, -ceiling(dim(geno)[1] / ncpus))[1:ncpus]
   }else {
     pbseq <- 1:dim(geno)[1]
+  }
+  if (verbose) {
+    cat("Calculating LD score...\n")
+    cat("Bin size for correlation:", bin / 1000, "Kb\n")
+    maxpb <- length(pbseq) + 1
+    pb <- pbapply::timerProgressBar(max = maxpb,
+                                    width = 30, char = "-", style = 3)
+    on.exit(close(pb))
   }
   if (bigmemory::is.big.matrix(geno)) {
     options(bigmemory.allow.dimnames = TRUE)
