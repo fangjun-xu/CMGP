@@ -1,4 +1,4 @@
-#' Adaptive Multi-BLUP
+ #' Adaptive Multi-BLUP
 #'
 #' @param y phenotype, n*1 vector, NAs refer to validation
 #' @param CV covariates, n*q matrix, numeric format for quantitative, character or factor for discrete
@@ -160,8 +160,9 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
       }
     }
     geno.fg <- lapply(unique(ind.mer), function(i) {
-      exi <- index[which(ind.mer != i)]
-      gi <- do.call(rbind, genolist[-exi])
+      exi <- index[which(ind.mer == i)]
+      gi <- do.call(rbind, genolist[exi])
+      gi <- as.matrix(gi)
       return(gi)
     })
   }
