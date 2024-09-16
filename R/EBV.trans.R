@@ -47,7 +47,7 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
   for (i in 1:length(geno)) {
     gi <- geno[[i]]
     if (!bigmemory::is.big.matrix(gi) && !is.matrix(gi)) {
-      stop("Wrong format in geno list inputed! matrix/big.matrix is allowed.")
+      stop("Wrong format in geno list(", i, "/", length(geno), ") inputed! matrix/big.matrix is allowed.")
     }
     if (sum(is.na(gi[, ])) != 0) stop("'NA' isn't allowed in geno!")
     if (length(y) != dim(gi)[2]) {
