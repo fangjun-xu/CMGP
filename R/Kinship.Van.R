@@ -35,9 +35,9 @@ Kinship.Van <- function(geno = NULL, weight = NULL, ncut = 1, ncpus = 1) {
   Z <- bigmemory::big.matrix(m, n, type = "double",
                              init = NULL, shared = FALSE)
   if (!is.null(weight)) {
-    Z[, ] <- (geno[, ] - maf) * sqrt(weight)
+    Z[, ] <- (geno[, ] - 2 * maf) * sqrt(weight)
   }else {
-    Z[, ] <- geno[, ] - maf
+    Z[, ] <- geno[, ] - 2 * maf
   }
   rm(geno, weight)
   K <- matrix(NA, n, n)
