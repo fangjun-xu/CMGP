@@ -147,7 +147,11 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
     on.exit(close(pb))
   }
   index <- sort(index)
-  geno.bg <- do.call(rbind, genolist[-index])
+  if (length(index) == length(geno)) {
+    geno.bg <- NULL
+  }else {
+    geno.bg <- do.call(rbind, genolist[-index])
+  }
   if (length(index) == 1) {
     geno.fg <- genolist[index]
   }else {
@@ -166,7 +170,11 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
       return(gi)
     })
   }
-  amb.geno <- c(geno.fg, list(geno.bg))
+  if (is.null(geno.bg)) {
+    amb.geno <- geno.fg
+  }else {
+    amb.geno <- c(geno.fg, list(geno.bg))
+  }
   if (verbose) {
     pbapply::setTimerProgressBar(pb, 1)
     cat("\n")
