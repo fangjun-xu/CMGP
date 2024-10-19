@@ -65,7 +65,7 @@ LDSC <- function(geno = NULL, map = NULL, bin = 1e6,
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
       geno <- geno[, ]
       suppressMessages(snowfall::sfExport("geno", "map", "bin",
-                                          "pbseq", "pb", "verbose"))
+                                          ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
       suppressMessages(snowfall::sfLibrary(pbapply))
       suppressMessages(snowfall::sfLibrary(stats))
       ldsc <- snowfall::sfLapply(1:dim(geno)[1], fun = ldCal)
