@@ -49,33 +49,29 @@ ols.fast <- function(y = NULL, CV = NULL, geno = NULL,
   }else {
     geno <- bigmemory::deepcopy(geno, col = ret)
   }
-  CV <- CovMatrix(CV = CV, n = length(y))
-  DF <- length(y) - ncol(CV) - 1
-  M <- bigmemory::big.matrix(length(y), length(y),
-                             type = "double", init = NULL, shared = FALSE)
-  CVi <- try(solve(crossprod(CV)), silent = TRUE)
-  if (inherits( CVi, "try-error")) {
+  y <- matrix(y, ncol = 1)
+  w <- CovMatrix(CV = CV, n = length(y))
+  DF <- length(y) - ncol(w) - 1
+  wwi <- try(solve(crossprod(w)), silent = TRUE)
+  if (inherits( wwi, "try-error")) {
     warning("The cor-matrix of CV is singular!")
-    CVi <- MASS::ginv(crossprod(CV))
+    wwi <- MASS::ginv(crossprod(w))
   }
-  M[, ] <- diag(1, length(y)) - tcrossprod(tcrossprod(CV, CVi), CV)
-  My <- crossprod(M[, ], as.matrix(y))
-  Mgeno <- bigmemory::big.matrix(dim(geno)[1],
-                                 dim(geno)[2],
-                                 type = "double",
-                                 init = NULL, shared = FALSE)
-  Mgeno[, ] <- tcrossprod(geno[, ], M[, ])
-  rm(M)
+  My <- y - tcrossprod(tcrossprod(w, wwi), w) %*% y
   yy <- sum(My ^ 2)
-  sdy <- sqrt(var(My))
+  
 
   OL <- function(i) {
-    xi <- Mgeno[i, ]
-    sdx <- sqrt(stats::var(xi))
-    ri <- stats::cor(My, xi)
-    b <- ri * sdy / sdx
-    ve <- (yy - b * sum(xi * My)) / DF
-    se <- sqrt(as.vector(ve) / sum(xi ^ 2))
+    x <- matrix(geno[i, ], ncol = 1)
+	xx <- sum(x ^ 2)
+	xw <- crossprod(x, w)
+	xy <- crossprod(x, My)
+	xhxh <- xx - tcrossprod(tcrossprod(xw, wwi), xw)
+	
+	b <- xy / xhxh
+	RSS <- yy - b * xy	
+	se <- sqrt(RSS / (xhxh * DF))
+    
     pvalue <- 2 * stats::pt(abs(b / se), DF, lower.tail = FALSE)
     pvalue[which(is.na(pvalue))] <- 1
     revl <- c(b, se, pvalue)
@@ -84,21 +80,20 @@ ols.fast <- function(y = NULL, CV = NULL, geno = NULL,
     }
     return(revl)
   }
-  if (dim(Mgeno)[1] == 1 || ncpus == 1) {
-    revl <- lapply(1:dim(Mgeno)[1], FUN = OL)
+  if (dim(geno)[1] == 1 || ncpus == 1) {
+    revl <- lapply(1:dim(geno)[1], FUN = OL)
   }else {
     if (Sys.info()[["sysname"]] == "Linux") {
-      revl <- parallel::mclapply(1:dim(Mgeno)[1], FUN = OL,
+      revl <- parallel::mclapply(1:dim(geno)[1], FUN = OL,
                                  mc.cores = ncpus,
                                  mc.preschedule = TRUE)
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
-      Mgeno <- Mgeno[, ]
-      suppressMessages(snowfall::sfExport("Mgeno", "My", "sdy", "yy", "DF",
-                                          "pbseq", "pb", "verbose"))
+      suppressMessages(snowfall::sfExport("geno", "My", "w", "yy", "DF",
+                                          "wwi","pbseq", "pb", "verbose"))
       suppressMessages(snowfall::sfLibrary(pbapply))
       suppressMessages(snowfall::sfLibrary(stats))
-      revl <- snowfall::sfLapply(1:dim(Mgeno)[1], fun = OL)
+      revl <- snowfall::sfLapply(1:dim(geno)[1], fun = OL)
       suppressMessages(snowfall::sfStop())
     }
   }
