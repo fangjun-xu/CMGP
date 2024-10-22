@@ -113,7 +113,8 @@ CMGP.AMB <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL
       suppressMessages(snowfall::sfExport("genolist", "y", "CV",
                                           "random", "max_iter", "EMsteps",
                                           "EM_alpha", "EMsteps_fail", "eps",
-                                          ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
+                                          "pbseq","verbose"))
+      suppressMessages(ifelse(verbose,snowfall::sfExport("pb"),Sys.sleep(0.00001)))
       suppressMessages(snowfall::sfLibrary(CMGP))
       suppressMessages(snowfall::sfLibrary(pbapply))
       L1 <- snowfall::sfLapply(1:length(genolist), fun = logl_1)

@@ -62,7 +62,8 @@ genome_cut <- function(geno = NULL, map = NULL, bin = 1e6,
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
       suppressMessages(snowfall::sfExport("geno", "map", "bin", "chr",
-                                           ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
+                                          "pbseq", "verbose"))
+      suppressMessages(ifelse(verbose,snowfall::sfExport("pb"),Sys.sleep(0.00001)))
       suppressMessages(snowfall::sfLibrary(pbapply))
       L1 <- snowfall::sfLapply(1:length(chr), cut_ge)
       suppressMessages(snowfall::sfStop())

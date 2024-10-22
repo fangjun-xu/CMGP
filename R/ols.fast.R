@@ -90,7 +90,8 @@ ols.fast <- function(y = NULL, CV = NULL, geno = NULL,
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
       suppressMessages(snowfall::sfExport("geno", "My", "w", "yy", "DF",
-                                          "wwi",ifelse(verbose,c("pbseq", "pb"),c("pbseq")),"verbose"))
+                                          "wwi", "pbseq", "verbose"))
+      suppressMessages(ifelse(verbose,snowfall::sfExport("pb"),Sys.sleep(0.00001)))
       suppressMessages(snowfall::sfLibrary(pbapply))
       suppressMessages(snowfall::sfLibrary(stats))
       revl <- snowfall::sfLapply(1:dim(geno)[1], fun = OL)
