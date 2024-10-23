@@ -236,12 +236,12 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
              Randomship = KR)
   if (verbose) {
     pbapply::setTimerProgressBar(pb, 1)
-    cat("\n")
   }
 
   GWAS <- NULL
   if (doTrans) {
     if (verbose) {
+      cat("\n")
       cat("Transforming the EBV to marker effects...\n")
       pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
       on.exit(close(pb))
