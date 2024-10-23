@@ -55,8 +55,11 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
               paste(rep("-", 29), collapse = ""), "<<<", sep = ""), "\n")
   }
 
-  pve <- as.vector(sp[, ncol(sp)])
-  names(pve) <- rownames(map)
+  #pve <- as.vector(sp[, ncol(sp)])
+  #names(pve) <- rownames(map)
+  pve <- as.data.frame(sp[, 7:9])
+  rownames(pve) <- rownames(map)
+
   inter.s <- c(min(interval_S) : max(interval_S))
   if (verbose) {
     if (length(inter.s) == 1) {
@@ -80,7 +83,11 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
       rownames(gij) <- rownames(geno)[snpij]
       return(gij)
     })
-    mix <- EBV.trans(y = y, CV = CV, geno = genolist, weight = pve,
+    #wi <- pve
+    wi <- as.vector(pve[, ncol(pve)])
+    names(wi) <- rownames(map)
+
+    mix <- EBV.trans(y = y, CV = CV, geno = genolist, weight = wi,
                      random = random, EMsteps = EMsteps, EM_alpha = EM_alpha,
                      EMsteps_fail = EMsteps_fail, max_iter = max_iter,
                      eps = eps, get.KR = FALSE, get.P = FALSE,
