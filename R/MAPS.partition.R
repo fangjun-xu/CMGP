@@ -57,7 +57,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
 
   #pve <- as.vector(sp[, ncol(sp)])
   #names(pve) <- rownames(map)
-  pve <- as.data.frame(sp[, 7:9])
+  pve <- as.data.frame(sp[, c(8:9)])
   rownames(pve) <- rownames(map)
 
   inter.s <- c(min(interval_S) : max(interval_S))
