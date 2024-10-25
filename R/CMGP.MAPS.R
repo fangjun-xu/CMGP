@@ -54,16 +54,23 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
                        max_iter = max_iter, ncpus = ncpus, verbose = verbose)
   clusm <- as.data.frame(mp$Cluster.map)
   part <- as.numeric(clusm$Cluster)
-  maps.geno <- lapply(1:max(part), function(i){
-    index <- as.numeric(which(part == i))
-    gi <- bigmemory::big.matrix(length(index), dim(geno)[2], type = "double",
-                                init = NULL, shared = FALSE)
-    gi[, ] <- geno[index, ]
-    rownames(gi) <- rownames(geno)[index]
-    colnames(gi) <- colnames(geno)
-    return(gi)
-  })
-  weight <- clusm$PVE
+
+  #maps.geno <- lapply(1:max(part), function(i){
+    #index <- as.numeric(which(part == i))
+    #gi <- bigmemory::big.matrix(length(index), dim(geno)[2], type = "double",
+                                #init = NULL, shared = FALSE)
+    #gi[, ] <- geno[index, ]
+    #rownames(gi) <- rownames(geno)[index]
+    #colnames(gi) <- colnames(geno)
+    #return(gi)
+  #})
+  #weight <- clusm$PVE
+  
+  maps.geno <- geno
+  st.wi <- as.vector(mp$Enrichment.h2)
+  #st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
+  weight <- clusm$PVE * st.wi[part]
+
   weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
   names(weight) <- rownames(geno)
   rm(clusm, part)

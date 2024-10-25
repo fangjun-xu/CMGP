@@ -83,9 +83,10 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
       rownames(gij) <- rownames(geno)[snpij]
       return(gij)
     })
-    #wi <- pve
+    
     wi <- as.vector(pve[, ncol(pve)])
     names(wi) <- rownames(map)
+    #wi <- NULL
 
     mix <- EBV.trans(y = y, CV = CV, geno = genolist, weight = wi,
                      random = random, EMsteps = EMsteps, EM_alpha = EM_alpha,
@@ -139,7 +140,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
       cat(" ", paste("[Stra.", i, "]", sep = ""), nums[i], "/", h2_enrich[i], "\n")
     }
   }
-  revl <- cbind(sp, partition)
+  revl <- data.frame(sp, partition)
   colnames(revl) <- c(colnames(sp), "Cluster")
 
   if (verbose) {
