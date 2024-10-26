@@ -58,7 +58,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   #pve <- as.vector(sp[, ncol(sp)])
   #names(pve) <- rownames(map)
   if (is.integer(y)) {
-    pve <- as.data.frame(sp[, c(9)])
+    pve <- as.data.frame(sp[, c(6,9)])
   }else {
     pve <- as.data.frame(sp[, c(6:9)])
   }
