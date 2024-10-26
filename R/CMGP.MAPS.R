@@ -68,7 +68,7 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   
   maps.geno <- geno
   st.wi <- as.vector(mp$Enrichment.h2)
-  #st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
+  st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
   weight <- clusm$PVE * st.wi[part]
 
   weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
