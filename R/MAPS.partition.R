@@ -58,11 +58,13 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   #pve <- as.vector(sp[, ncol(sp)])
   #names(pve) <- rownames(map)
   if (is.integer(y)) {
-    pve <- as.data.frame(sp[, c(6,9)])
+    pve <- as.data.frame(-log10(sp[, c(6)]))
   }else {
-    pve <- as.data.frame(sp[, c(6:9)])
+    pve <- as.data.frame(sp[, c(6:8)])
+    pve[, 1] <- -log10(pve[, 1])
   }
   rownames(pve) <- rownames(map)
+  wei <- sp[, 9]
 
   inter.s <- c(min(interval_S) : max(interval_S))
   if (verbose) {
@@ -88,9 +90,9 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
       return(gij)
     })
     
-    wi <- as.vector(pve[, ncol(pve)])
+    wi <- as.vector(wei)
     names(wi) <- rownames(map)
-    #wi <- NULL
+    wi <- NULL
 
     mix <- EBV.trans(y = y, CV = CV, geno = genolist, weight = wi,
                      random = random, EMsteps = EMsteps, EM_alpha = EM_alpha,
@@ -116,7 +118,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     }else {
       suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = ncpus))
       geno <- geno[, ]
-      suppressMessages(snowfall::sfExport("pve", "geno", "y",
+      suppressMessages(snowfall::sfExport("pve", "geno", "y", "wei",
                                           "CV", "random", "M",
                                           "EMsteps", "EM_alpha",
                                           "EMsteps_fail", "max_iter",
