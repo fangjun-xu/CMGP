@@ -54,19 +54,19 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
                        max_iter = max_iter, ncpus = ncpus, verbose = verbose)
   clusm <- as.data.frame(mp$Cluster.map)
   part <- as.numeric(clusm$Cluster)
-  
+  weight <- clusm$PVE
   weight_ld <- function(i) {
     index <- as.numeric(which(part == i))
-    wi <- as.vector(clusm$PVE[index])
+    wi <- as.vector(weight[index])
     ldsci <- ldscore[index]
     ldin <- LD.remove(index = index, geno = geno, value = 1 / wi,
                       LD.threshold = LD.threshold, verbose = FALSE)
-    MINwi <-min(wi, na.rm = TRUE)
+    #MINwi <-min(wi, na.rm = TRUE)
     ret <- which(index %in% ldin)
-    wi[ret] <- wi[ret] * (1 + ldsci[ret])
+    wi[ret] <- wi[ret] * (1 + ldsci[ret]) * length(ldin) / length(index)
     rem <- which(!(index %in% ldin))
     if (length(rem) != 0) {
-      wi[rem] <- MINwi
+      wi[rem] <- 0
     }else {
       wi <- wi
     }
@@ -83,11 +83,35 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     return(gi)
   })
   
-  Eh2 <- as.vector(mp$Enrichment.h2)
-  st <- which(Eh2 == max(Eh2))
-  wei <- weight_ld(st)
-  weight <- clusm$PVE
+  NUM <- as.vector(table(part))
+  if (length(NUM) == 1) {
+    index <- which(weight >= stats::quantile(weight,
+                                             0.99,
+                                             na.rm = TRUE))
+    wi <- as.vector(weight[index])
+    ldsci <- ldscore[index]
+    ldin <- LD.remove(index = index, geno = geno, value = 1 / wi,
+                      LD.threshold = LD.threshold, verbose = FALSE)
+    #MINwi <-min(wi, na.rm = TRUE)
+    ret <- which(index %in% ldin)
+    wi[ret] <- wi[ret] * (1 + ldsci[ret]) * length(ldin) / length(index)
+    rem <- which(!(index %in% ldin))
+    if (length(rem) != 0) {
+      wi[rem] <- 0
+    }else {
+      wi <- wi
+    }
+    wei <- cbind(index, wi)
+  }else {
+    st <- which(NUM != max(NUM))
+    wei <- lapply(st, weight_ld)
+    wei <- do.call(rbind, wei)
+  }
+  #Eh2 <- as.vector(mp$Enrichment.h2)
+  #st <- which(Eh2 == max(Eh2))
+  #wei <- weight_ld(st)
   weight[wei[, 1]] <- wei[, 2]
+  weight <- weight + 1
   mp$Cluster.map$weight <- weight
 
   #maps.geno <- geno ###integration
