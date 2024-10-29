@@ -130,7 +130,7 @@ CMGP <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
   }
   if (model == "MAPS") {
     revl <- CMGP.MAPS(y = y, CV = CV, geno = geno, map = map, random = random,
-                      alpha = alpha, ldscore = ldscore, bin = bin,
+                      alpha = alpha, ldscore = ldscore, bin = bin, LD.threshold = LD.threshold,
                       ncpus = ncpus, interval_S = interval_S, doTrans = doTrans,
                       get.KR = get.KR, get.P = get.P, EM_alpha = EM_alpha,
                       EMsteps_fail = EMsteps_fail, EMsteps = EMsteps,

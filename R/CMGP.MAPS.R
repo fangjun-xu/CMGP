@@ -36,7 +36,7 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
                       random = NULL, alpha = c(-3, 1), ldscore = NULL, bin = 1e6,
                       ncpus = 1, interval_S = c(1,15), doTrans = FALSE,
                       get.KR = FALSE, get.P = FALSE, EMsteps = 0L,
-                      EMsteps_fail = 10L, EM_alpha = 1,
+                      EMsteps_fail = 10L, EM_alpha = 1, LD.threshold = 0.7,
                       max_iter = 50L, eps = 1e-02, verbose = TRUE) {
 
   #---------------------------------------------------------#
@@ -54,22 +54,52 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
                        max_iter = max_iter, ncpus = ncpus, verbose = verbose)
   clusm <- as.data.frame(mp$Cluster.map)
   part <- as.numeric(clusm$Cluster)
-
-  #maps.geno <- lapply(1:max(part), function(i){
-    #index <- as.numeric(which(part == i))
-    #gi <- bigmemory::big.matrix(length(index), dim(geno)[2], type = "double",
-                                #init = NULL, shared = FALSE)
-    #gi[, ] <- geno[index, ]
-    #rownames(gi) <- rownames(geno)[index]
-    #colnames(gi) <- colnames(geno)
-    #return(gi)
-  #})
-  #weight <- clusm$PVE
   
-  maps.geno <- geno
-  st.wi <- as.vector(mp$Enrichment.h2)
-  st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
-  weight <- clusm$PVE * st.wi[part]
+  weight_ld <- function(i) {
+    index <- as.numeric(which(part == i))
+    wi <- as.vector(clusm$PVE[index])
+    ldsci <- ldscore[index]
+    ldin <- LD.remove(index = index, geno = geno, value = 1 / wi,
+                      LD.threshold = LD.threshold, verbose = FALSE)
+    MINwi <-min(wi, na.rm = TRUE)
+    ret <- which(index %in% ldin)
+    wi[ret] <- wi[ret] * (1 + ldsci[ret])
+    rem <- which(!(index %in% ldin))
+    if (length(rem) != 0) {
+      wi[rem] <- MINwi
+    }else {
+      wi <- wi
+    }
+    return(cbind(index, wi))
+  }
+
+  maps.geno <- lapply(1:max(part), function(i){
+    index <- as.numeric(which(part == i))
+    gi <- bigmemory::big.matrix(length(index), dim(geno)[2], type = "double",
+                                init = NULL, shared = FALSE)
+    gi[, ] <- geno[index, ]
+    rownames(gi) <- rownames(geno)[index]
+    colnames(gi) <- colnames(geno)
+    return(gi)
+  })
+  if (verbose) {
+    cat("Weight optimizing...\n")
+    pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
+    on.exit(close(pb))
+  }
+  mc <- ifelse(Sys.info()[["sysname"]] == "Linux", ncpus, 1)
+  wei <- parallel::mclapply(1:max(part), FUN = weight_ld, mc.cores = mc)
+  wei <- do.call(rbind, wei)
+  weight <- clusm$PVE
+  weight[wei[, 1]] <- wei[, 2]
+  mp$Cluster.map$weight <- weight
+  if (verbose) {
+    pbapply::setTimerProgressBar(pb, 1)
+  }
+  #maps.geno <- geno
+  #st.wi <- as.vector(mp$Enrichment.h2)
+  #st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
+  #weight <- weight * st.wi[part]
 
   weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
   names(weight) <- rownames(geno)

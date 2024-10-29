@@ -58,10 +58,11 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   #pve <- as.vector(sp[, ncol(sp)])
   #names(pve) <- rownames(map)
   if (is.integer(y)) {
-    pve <- as.data.frame(-log10(sp[, c(6)]))
+    #pve <- as.data.frame(-log10(sp[, c(6)]))
+    pve <- as.data.frame(sp[, c(9)])
   }else {
-    pve <- as.data.frame(sp[, c(6:8)])
-    pve[, 1] <- -log10(pve[, 1])
+    pve <- as.data.frame(sp[, c(7:9)])
+    #pve[, 1] <- -log10(pve[, 1])
   }
   rownames(pve) <- rownames(map)
   wei <- sp[, 9]
