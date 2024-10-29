@@ -82,21 +82,15 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     colnames(gi) <- colnames(geno)
     return(gi)
   })
-  if (verbose) {
-    cat("Weight optimizing...\n")
-    pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
-    on.exit(close(pb))
-  }
-  mc <- ifelse(Sys.info()[["sysname"]] == "Linux", ncpus, 1)
-  wei <- parallel::mclapply(1:max(part), FUN = weight_ld, mc.cores = mc)
-  wei <- do.call(rbind, wei)
+  
+  Eh2 <- as.vector(mp$Enrichment.h2)
+  st <- which(Eh2 == max(Eh2))
+  wei <- weight_ld(st)
   weight <- clusm$PVE
   weight[wei[, 1]] <- wei[, 2]
   mp$Cluster.map$weight <- weight
-  if (verbose) {
-    pbapply::setTimerProgressBar(pb, 1)
-  }
-  #maps.geno <- geno
+
+  #maps.geno <- geno ###integration
   #st.wi <- as.vector(mp$Enrichment.h2)
   #st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
   #weight <- weight * st.wi[part]

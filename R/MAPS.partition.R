@@ -61,7 +61,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     #pve <- as.data.frame(-log10(sp[, c(6)]))
     pve <- as.data.frame(sp[, c(9)])
   }else {
-    pve <- as.data.frame(sp[, c(7:9)])
+    pve <- as.data.frame(sp[, c(8:9)])
     #pve[, 1] <- -log10(pve[, 1])
   }
   rownames(pve) <- rownames(map)

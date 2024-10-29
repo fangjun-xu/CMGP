@@ -134,7 +134,7 @@ CMGP <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
                       ncpus = ncpus, interval_S = interval_S, doTrans = doTrans,
                       get.KR = get.KR, get.P = get.P, EM_alpha = EM_alpha,
                       EMsteps_fail = EMsteps_fail, EMsteps = EMsteps,
-                      max_iter = max_iter, eps = eps, verbose = TRUE)
+                      max_iter = max_iter, eps = eps, verbose = verbose)
   }
 
   if (verbose) {
