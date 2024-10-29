@@ -114,10 +114,10 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   weight <- weight + 1
   mp$Cluster.map$weight <- weight
 
-  #maps.geno <- geno ###integration
-  #st.wi <- as.vector(mp$Enrichment.h2)
-  #st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
-  #weight <- weight * st.wi[part]
+  maps.geno <- geno ###integration
+  st.wi <- as.vector(mp$Enrichment.h2)
+  st.wi <- as.vector(table(part)) * st.wi / nrow(geno)
+  weight <- weight * st.wi[part]
 
   weight[which(is.na(weight))] <- min(weight, na.rm = TRUE)
   names(weight) <- rownames(geno)
