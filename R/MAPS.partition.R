@@ -30,7 +30,7 @@
 #' #}
 MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
                            random = NULL, alpha = 0, ldscore = NULL, bin = 1e6,
-                           interval_S = c(1,15), ncpus = 1, verbose = TRUE,
+                           interval_S = c(1, 15), ncpus = 1, verbose = TRUE,
                            EMsteps = 0L, EMsteps_fail = 10L, EM_alpha = 1,
                            max_iter = 50L, eps = 1e-02) {
 
@@ -54,18 +54,26 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
               "Stratification  Start",
               paste(rep("-", 29), collapse = ""), "<<<", sep = ""), "\n")
   }
-
+  index00 <- which(sp$Pvalue <= 0.05)
+  index01 <- which(sp$Pvalue <= stats::quantile(sp$Pvalue,
+                                                0.1, na.rm = TRUE))
+  index0 <- ifelse(length(index00) < length(index01), index00, index01)
+  index <- LD.remove(index = index0, geno = geno, value = 1 / sp$PVE[index0],
+                     LD.threshold = 0.7, ncpus = ncpus, verbose = verbose)
+  diffind <- setdiff(index0, index)
+  sp$Weight <- sp$PVE + 1
+  sp$Weight[diffind] <- 1
   #pve <- as.vector(sp[, ncol(sp)])
   #names(pve) <- rownames(map)
   if (is.integer(y)) {
     #pve <- as.data.frame(-log10(sp[, c(6)]))
-    pve <- as.data.frame(sp[, c(9)])
+    pve <- as.data.frame(sp[, c(10)])
   }else {
-    pve <- as.data.frame(sp[, c(8:9)])
+    pve <- as.data.frame(sp[, c(8:10)])
     #pve[, 1] <- -log10(pve[, 1])
   }
   rownames(pve) <- rownames(map)
-  wei <- sp[, 9]
+  wei <- sp[, 10]
 
   inter.s <- c(min(interval_S) : max(interval_S))
   if (verbose) {
@@ -90,7 +98,7 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
       rownames(gij) <- rownames(geno)[snpij]
       return(gij)
     })
-    
+
     wi <- as.vector(wei)
     names(wi) <- rownames(map)
     wi <- NULL
