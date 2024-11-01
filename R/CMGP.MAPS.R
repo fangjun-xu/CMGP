@@ -60,7 +60,7 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     wi <- as.vector(weight[index])
     ldsci <- ldscore[index]
     ldin <- LD.remove(index = index, geno = geno, value = 1 / wi,
-                      LD.threshold = LD.threshold, verbose = FALSE)
+                      LD.threshold = LD.threshold, ncpus = ncpus, verbose = FALSE)
     #MINwi <-min(wi, na.rm = TRUE)
     ret <- which(index %in% ldin)
     wi[ret] <- wi[ret] * (1 + ldsci[ret]) * length(ldin) / length(index)
@@ -91,7 +91,7 @@ CMGP.MAPS <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
     wi <- as.vector(weight[index])
     ldsci <- ldscore[index]
     ldin <- LD.remove(index = index, geno = geno, value = 1 / wi,
-                      LD.threshold = LD.threshold, verbose = FALSE)
+                      LD.threshold = LD.threshold, ncpus = ncpus, verbose = FALSE)
     #MINwi <-min(wi, na.rm = TRUE)
     ret <- which(index %in% ldin)
     wi[ret] <- wi[ret] * (1 + ldsci[ret]) * length(ldin) / length(index)

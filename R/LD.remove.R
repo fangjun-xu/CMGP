@@ -15,7 +15,7 @@
 #' #LD.threshold = LD.threshold, verbose = verbose)
 #' #}
 LD.remove <- function(index = NULL, geno = NULL, value = NULL,
-                      LD.threshold = 0.7, verbose = TRUE) {
+                      LD.threshold = 0.7, ncpus = 1, verbose = TRUE) {
   if (length(index) < 2) {
     return(index)
   }else {
@@ -29,49 +29,98 @@ LD.remove <- function(index = NULL, geno = NULL, value = NULL,
       clusters <- stats::cutree(fit, h = 1 - LD.threshold)
       names(value) <- rownames(X1)
       top.selected <- sapply(1:max(clusters), function(i) {
-	cluster_elements <- clusters == i
-	top_within <- which.min(value[cluster_elements])
-	if (length(top_within) == 0) top_within <- 1
-	return(which(cluster_elements)[top_within])
+	      cluster_elements <- clusters == i
+	      top_within <- which.min(value[cluster_elements])
+	      if (length(top_within) == 0) top_within <- 1
+	      return(which(cluster_elements)[top_within])
       })
       index<-as.numeric(names(top.selected))
       rm(sigma, sigma.distance, fit, clusters, top.selected)
       return(index)
     }
-    if (length(index) <= 10000) {
+    if (length(index) <= 5000) {
       if (verbose) {
         cat("LD removing...\n")
         pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
         on.exit(close(pb))
       }
-      index <- ldr(index = index, value = value)
+      index_out <- ldr(index = index, value = value)
       if (verbose) {
         pbapply::setTimerProgressBar(pb, 1)
       }
+      return(index_out)
     }else {
-      nbreak <- ceiling(length(index) / 10000)
+      nbreak <- ceiling(length(index) / 2500)
       cutind <- cut(1:length(index), breaks = nbreak, labels = FALSE)
-      if (verbose) {
-        cat("LD removing...\n")
-        pb <- pbapply::timerProgressBar(max = nbreak + 1, width = 30, char = "-", style = 3)
+      com <- 
+    }
+
+    if (verbose) {
+      cat("LD removing...\n")
+      t1 <- as.numeric(Sys.time())
+      if (length(index) <= 5000) {
+        pb <- pbapply::timerProgressBar(width = 30, char = "-", style = 3)
         on.exit(close(pb))
       }
-      indi <- lapply(1:nbreak, function(i) {
-        idi <- index[which(cutind == i, arr.ind = TRUE)]
-        vi <- value[which(cutind == i, arr.ind = TRUE)]
-	if (verbose) {
-          pbapply::setTimerProgressBar(pb, i)
+    }
+    
+    indi <- index
+    vali <- value
+    cutn <- 1
+    do.repeat <- ifelse(length(indi) > 5000, TRUE, FALSE)
+    while(do.repeat) {
+      nbreak <- ceiling(length(indi) / 5000)
+      cutind <- cut(1:length(indi), breaks = nbreak, labels = FALSE)
+      if (nbreak > ncpus && ncpus > 1) {
+        pbseq <- seq(nbreak, 1, -ceiling(nbreak / ncpus))[1:ncpus]
+      }else {
+        pbseq <- 1:nbreak
+      }
+      if (verbose) {
+        cat("Repeat:", cutn, ",", "Num.:", length(indi), "\n")
+        maxpb <- length(pbseq) + 1
+        pb <- pbapply::timerProgressBar(max = maxpb, width = 30, char = "-", style = 3)
+        on.exit(close(pb))
+      }
+      
+      mc <- ifelse(Sys.info()[["sysname"]] == "Linux", ncpus, 1)
+      indmc <- parallel::mclapply(1:nbreak, function(i) {
+        idi <- indi[which(cutind == i, arr.ind = TRUE)]
+        vi <- vali[which(cutind == i, arr.ind = TRUE)]
+	      if (verbose && i %in% pbseq) {
+          pbapply::setTimerProgressBar(pb, which(sort(pbseq) %in% i))
         }
         return(ldr(index = idi, value = vi))
-      })
-      indi <- unlist(indi)
-      vali <- value[which(index %in% indi)]
-      index <- ldr(index = indi, value = vali)
+      }, mc.cores = mc)
+      indmc <- unlist(indmc)
+      Nin <- length(indi)
+      Nout <- length(indmc)
+      
+      indi <- index[which(index %in% indmc)]
+      vali <- value[which(index %in% indmc)]
+      cutn <- cutn + 1
       if (verbose) {
-        pbapply::setTimerProgressBar(pb, nbreak + 1)
+        pbapply::setTimerProgressBar(pb, maxpb)
+        cat("\n")
       }
-    }	
-    return(index)
+      do.repeat <- ifelse((Nout > 5000 && Nout != Nin), TRUE, FALSE)
+    }
+
+    index_out <- ldr(index = indi, value = vali)
+
+    if (verbose) {
+     if (length(index) <= 5000) {
+        pbapply::setTimerProgressBar(pb, 1)
+      }else {
+        t2 <- as.numeric(Sys.time())
+        tud <- time.trans(round(t2 - t1))
+        cat(paste("  Finished, elapsed=", tud, sep = ""))
+      }
+    }
+    return(index_out)
   }
 }
 
+
+te=LD.remove(index = 1:70000, geno = geno, value = 1:70000,
+                      LD.threshold = 0.7, ncpus = 10, verbose = TRUE)

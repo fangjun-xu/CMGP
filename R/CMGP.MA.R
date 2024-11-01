@@ -82,7 +82,7 @@ CMGP.MA <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
   }
   if (length(index) >= 2) {
     index <- LD.remove(index = index, geno = geno, value = value,
-                       LD.threshold = LD.threshold, verbose = verbose)
+                       LD.threshold = LD.threshold, ncpus = ncpus, verbose = verbose)
     if (length(index) > 300) {
       if (verbose) {
         cat("The remaining signals were plethora, select the top 300\n")

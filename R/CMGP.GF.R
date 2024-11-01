@@ -82,7 +82,7 @@ CMGP.GF <- function(y = NULL, CV = NULL, geno = NULL, map = NULL, random = NULL,
   }
   if (length(index) >= 2) {
     index <- LD.remove(index = index, geno = geno, value = value,
-                       LD.threshold = LD.threshold, verbose = verbose)
+                       LD.threshold = LD.threshold, ncpus = ncpus, verbose = verbose)
     if (verbose) {
       cat(length(index), "signals retained as genomic factor\n")
     }
