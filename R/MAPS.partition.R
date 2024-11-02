@@ -58,10 +58,13 @@ MAPS.partition <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   index01 <- which(sp$Pvalue <= stats::quantile(sp$Pvalue,
                                                 0.1, na.rm = TRUE))
   index0 <- ifelse(length(index00) < length(index01), index00, index01)
-  #index <- LD.remove(index = index0, geno = geno, value = 1 / sp$PVE[index0],
-                     #LD.threshold = 0.7, ncpus = ncpus, verbose = verbose)
+  ##qualitive
   index <- LD.remove(index = index0, geno = geno, value = sp$Pvalue[index0],
                      LD.threshold = 0.7, ncpus = ncpus, verbose = verbose)
+  ##quantitative
+  #index <- LD.remove(index = index0, geno = geno, value = 1 / sp$PVE[index0],
+                     #LD.threshold = 0.7, ncpus = ncpus, verbose = verbose)
+  
   diffind <- setdiff(index0, index)
   sp$Weight <- sp$PVE + 1
   sp$Weight[diffind] <- 1
