@@ -64,18 +64,32 @@ h2.m <- function(y = NULL, CV = NULL, geno = NULL, map = NULL,
   maf[which(maf == 0.5)] <- 0.01 / n
 
   if (is.null(ldscore)) {
-    if (is.null(map)) {
-      stop("geno map is required for LD score caculating!")
-    }
-    ldscore <- LDSC(geno = geno, map = map, bin = bin,
-                    ncpus = ncpus, verbose = verbose)
-  }else {
-    ldscore <- as.vector(ldscore)
-    if (length(ldscore) != m) {
-      stop("Wrong LD score provided!")
-    }else {
+    if (is.integer(y)) {
       if (verbose) {
-        cat("LD score has been provided\n")
+        cat("LD scores not recommended for discrete traits", "\n")
+      }
+      ldscore <- rep(0, length(maf))
+    }else {
+      if (is.null(map)) {
+        stop("geno map is required for LD score caculating!")
+      }
+      ldscore <- LDSC(geno = geno, map = map, bin = bin,
+                      ncpus = ncpus, verbose = verbose)
+    }
+  }else {
+    if (is.integer(y)) {
+      if (verbose) {
+        cat("LD scores not recommended for discrete traits", "\n")
+      }
+      ldscore <- rep(0, length(maf))
+    }else {
+      ldscore <- as.vector(ldscore)
+      if (length(ldscore) != m) {
+        stop("Wrong LD score provided!")
+      }else {
+        if (verbose) {
+          cat("LD score has been provided\n")
+        }
       }
     }
   }
