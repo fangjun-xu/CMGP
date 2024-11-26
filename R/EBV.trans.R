@@ -286,25 +286,29 @@ EBV.trans <- function(y = NULL, CV = NULL, geno = NULL, weight = NULL,
       }
       ef <- colSums(tcrossprod(K_inv, DZ) * ebv.g[, i])
       Effect <- scalei * ef
-      pch <-try(chol(P), silent = TRUE)
-      if (inherits(pch, "try-error")) {
-        warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
-        eig <- eigen(P, symmetric = TRUE)
-        vec <- eig$vectors
-        val <- eig$values
-        DZS <- tcrossprod(DZ, t(vec))
-        diagv <- apply(DZS, 1, function(i) {
-          return(sum(val * i^2))
-        })
-        SE <- vg[i] * scalei * sqrt(diagv)
-        rm(ef, eig, vec, val, DZS, pch, diagv)
-      }else {
-        ZP <- tcrossprod(DZ, pch)
-        n <- dim(pch)[2]
-        diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
-        SE <- vg[i] * scalei * sqrt(diagv)
-        rm(ef, ZP, pch, diagv)
-      }
+
+      DZP <- tcrossprod(DZ, P)
+      diagv <- rowSums(DZP * DZ); rm(DZP)
+      SE <- vg[i] * scalei * sqrt(diagv)
+      #pch <-try(chol(P), silent = TRUE)
+      #if (inherits(pch, "try-error")) {
+        #warning("The ", i, "th P matrix is not positive definite\nTry spectral decomposition instead of cholesky decomposition")
+        #eig <- eigen(P, symmetric = TRUE)
+        #vec <- eig$vectors
+        #val <- eig$values
+        #DZS <- tcrossprod(DZ, t(vec))
+        #diagv <- apply(DZS, 1, function(i) {
+          #return(sum(val * i^2))
+       # })
+       # SE <- vg[i] * scalei * sqrt(diagv)
+        #rm(ef, eig, vec, val, DZS, pch, diagv)
+      #}else {
+        #ZP <- tcrossprod(DZ, pch)
+        #n <- dim(pch)[2]
+        #diagv <- (n - 1) * Rfast::rowVars(ZP) + n * rowMeans(ZP) ^ 2
+        #SE <- vg[i] * scalei * sqrt(diagv)
+        #rm(ef, ZP, pch, diagv)
+      #}
         Pvalue <- 2 * stats::pt(abs(Effect / SE), DF, lower.tail = FALSE)
         if (sum(is.na(Pvalue)) != 0) {
           warning("Non-positive variance appeared at ", paste(which(is.na(Pvalue)), collapse = ","), " markers in geno group ", i)
